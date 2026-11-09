@@ -168,8 +168,47 @@ describe("normalizeWhatsAppNumber", () => {
     ["(0812) 3456 789", "628123456789"],
     ["628123456789", "628123456789"],
     ["  +628123456789  ", "628123456789"],
-  ])("menormalkan %j menjadi %s", (raw, expected) => {
+    ["0062 812-3456-789", "628123456789"], // awalan internasional 00 untuk nomor Indonesia
+  ])("menormalkan nomor Indonesia %j menjadi %s", (raw, expected) => {
     expect(normalizeWhatsAppNumber(raw)).toEqual({ ok: true, data: expected });
+  });
+
+  it.each([
+    ["+1 415 555 2671", "14155552671"], // AS
+    ["+44 20 7946 0958", "442079460958"], // Inggris
+    ["0044 20 7946 0958", "442079460958"], // awalan 00
+    ["+65 8123 4567", "6581234567"], // Singapura
+    ["+60 12-345 6789", "60123456789"], // Malaysia
+    ["+61 4 1234 5678", "61412345678"], // Australia
+    ["+81 90-1234-5678", "819012345678"], // Jepang
+  ])("menormalkan nomor internasional %j menjadi %s", (raw, expected) => {
+    expect(normalizeWhatsAppNumber(raw)).toEqual({ ok: true, data: expected });
+  });
+
+  it("nomor internasional dipakai apa adanya di URL wa.me", () => {
+    const r = buildWhatsAppUrl({
+      vendorPhone: "+65 8123 4567",
+      clientName: "Siti Rahma",
+      eventDate: "2026-12-15",
+      estimate: makeEstimate(),
+    });
+    expect(r.ok && r.data.startsWith("https://wa.me/6581234567?text=")).toBe(true);
+  });
+
+  it.each([
+    ["angka telanjang non-Indonesia (bisa salah terbaca)", "14155552671"],
+    ["angka telanjang tanpa 0 di depan", "8123456789"],
+    ["internasional terlalu pendek (7 digit)", "+1234567"],
+    ["internasional terlalu panjang (16 digit)", "+1234567890123456"],
+    ["kode negara diawali nol", "+0 123456789"],
+    ["00 diikuti nol", "000441234567890"],
+    ["Indonesia dengan nol setelah 62", "+62 0812 3456 789"],
+    ["Indonesia terlalu pendek", "+62 812345"],
+    ["huruf di dalam nomor", "+1 415 CALL NOW"],
+    ["dua tanda plus", "++14155552671"],
+    ["plus di tengah", "1+4155552671"],
+  ])("menolak %s", (_label, raw) => {
+    expect(normalizeWhatsAppNumber(raw)).toMatchObject({ ok: false, code: "INVALID_PHONE" });
   });
 
   it.each([
@@ -178,8 +217,6 @@ describe("normalizeWhatsAppNumber", () => {
     "12345",
     "0812",
     "08123456789012345678",
-    "+1 415 555 2671",
-    "0062812345678",
     "+0628123456789",
     "628123456789; DROP",
     "62812345678a",
