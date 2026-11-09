@@ -1,0 +1,42 @@
+# deps & build
+node_modules/
+.next/
+out/
+build/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# rahasia (jangan pernah di-commit; hanya *.example yang boleh)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+.npmrc
+*service-account*.json
+
+# platform
+.vercel/
+.turbo/
+
+# tes
+playwright-report/
+test-results/
+blob-report/
+.auth/
+
+# lokal Claude Code & reviewer
+.claude/settings.local.json
+.claude/hooks/state/
+.code-reviewer/.env
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+npm-debug.log*
