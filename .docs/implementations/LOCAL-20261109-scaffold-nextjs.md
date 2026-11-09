@@ -54,6 +54,6 @@ Semua versi dikunci lewat `package-lock.json`.
 | Kontras dan tampilan di 360 px | belum diuji visual |
 
 ## Open Question
-1. **`.env.example` belum ada.** Aturan `Read(./.env.*)` di `.claude/settings.json` ikut memblokir penulisan `.env.example`. Perubahan aturan itu ditolak classifier karena menyentuh izin Claude sendiri. Pilihan user: (a) persempit deny menjadi nama berkas rahasia eksplisit (`.env`, `.env.local`, `.env.production`, dst.), atau (b) buat `.env.example` sendiri dengan isi `NEXT_PUBLIC_SITE_URL=http://localhost:3000`. README dan `playwright.config.ts` tidak bergantung padanya, tetapi `npm run build` lokal butuh variabel itu.
+1. **`.env.example`** dibuat oleh user (9 Nov 2026) karena aturan `Read(./.env.*)` di `.claude/settings.json` terlalu lebar dan ikut memblokir penulisan oleh Claude. Isinya tidak dibaca Claude (dipindai hook rahasia saat commit). Aturan deny tetap lebar; tiket berikutnya yang menambah variabel env (DB, Auth, R2) memerlukan user menambah barisnya, atau user mempersempit deny menjadi nama berkas rahasia eksplisit.
 2. **CSP ber-nonce vs kecepatan halaman publik** (target SRS < 1,5 dtk). Putuskan saat fitur halaman publik dikerjakan (`.docs/SRS.md` §5).
 3. Pengaturan GitHub (branch protection, Actions CI, Dependabot) masih tugas user / tiket tersendiri.
