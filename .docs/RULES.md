@@ -2,7 +2,7 @@
 
 > Stack: Next.js 14+ (App Router), TypeScript strict, Tailwind CSS, Server Actions / Route Handlers, PostgreSQL (Supabase / Neon) + Prisma, Auth.js (NextAuth), Cloudflare R2.
 > Keamanan: `RULES_SECURITY.md` (berlaku di atas aturan lain). Template: `RULES_TEMPLATES.md`. UI: `RULES_FRONTEND.md`. DB: `RULES_DB.md`.
-> Ikuti **versi yang terpasang** di `package.json`; bila API berbeda antar versi (mis. `params` sinkron di Next 14, `Promise` di Next 15+; Auth.js v5 `auth()`), cek dokumentasi versi itu, jangan menebak.
+> Ikuti **versi yang terpasang** di `package.json`; bila API berbeda antar versi (mis. `params`/`searchParams` berupa `Promise` dan wajib di-`await` sejak Next 15; `middleware.ts` diganti nama menjadi `proxy.ts` di Next 16; Auth.js v5 `auth()`). Next.js membawa dokumentasi versinya di `node_modules/next/dist/docs/`, gunakan itu sebagai rujukan, cek dokumentasi versi itu, jangan menebak.
 
 ---
 
@@ -22,8 +22,11 @@ src/
     <fitur>/              # service + query per fitur (akses Prisma di sini saja)
     storage/              # klien R2, presign
   actions/                # Server Actions per fitur ("use server")
+  proxy.ts                # Next 16 (dulu middleware.ts): CSP ber-nonce + pagar kasar
   lib/
-    env.ts                # satu-satunya pembaca process.env (Zod)
+    env.schema.ts         # skema Zod env (murni, bisa diuji)
+    env.ts                # satu-satunya pembaca process.env server (server-only)
+    env.client.ts         # nilai NEXT_PUBLIC_* (publik, tanpa rahasia)
     db.ts                 # singleton PrismaClient (server-only)
     validation/           # skema Zod bersama (dipakai form klien dan server)
     utils.ts

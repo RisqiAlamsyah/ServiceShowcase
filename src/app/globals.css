@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+/*
+  Design system ServiceShowcase (SRS §8): off-white hangat, aksen terracotta, charcoal.
+  Radius tegas 4-8px, tanpa bayangan tebal melayang.
+  Kontras: terracotta (#C86D51) di atas canvas hanya ±3.4:1, jadi hanya untuk teks besar,
+  garis, dan ornamen. Teks kecil beraksen memakai --color-accent-strong (±5:1).
+*/
+@theme {
+  --color-canvas: #f9f6f0;
+  --color-surface: #ffffff;
+  --color-ink: #1e1e1e;
+  --color-muted: #5b5750;
+  --color-line: #e4ded3;
+  --color-accent: #c86d51;
+  --color-accent-strong: #a5502f;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+}
+
+@theme inline {
+  --font-heading: var(--font-playfair), ui-serif, Georgia, serif;
+  --font-body: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: var(--font-body);
+    line-height: 1.6;
+    text-rendering: optimizeLegibility;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+}

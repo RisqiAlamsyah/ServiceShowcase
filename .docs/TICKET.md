@@ -50,7 +50,7 @@ Tujuan, siapa pengguna, dan batasan (apa yang TIDAK termasuk).
 - [ ] `npm run lint` dan `npm run typecheck` lulus
 - [ ] `npm run test` lulus: jalur berhasil, input tidak valid, akses ditolak (+ IDOR bila menyentuh data pengguna)
 - [ ] `npm run test:e2e` skenario {nama} lulus (bila menyentuh alur UI)
-- [ ] `npm run build` lulus (bila menyentuh config/middleware/route/env)
+- [ ] `npm run build` lulus (bila menyentuh config/proxy/route/env)
 - [ ] Migrasi diuji dari DB kosong dan DB berisi data contoh di database lokal sementara (bila ada perubahan skema)
 - [ ] `npm audit --omit=dev` tanpa High/Critical (bila dependensi berubah)
 

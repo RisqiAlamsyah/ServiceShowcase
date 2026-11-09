@@ -14,7 +14,7 @@ const { execFileSync } = require('child_process');
 
 const GUARDED = [
   'src/', 'app/', 'components/', 'lib/', 'prisma/', 'tests/', 'e2e/', 'public/',
-  'middleware.ts', 'next.config.', 'auth.ts', 'auth.config.ts', 'tailwind.config.', 'package.json',
+  'proxy.ts', 'middleware.ts', 'next.config.', 'auth.ts', 'auth.config.ts', 'tailwind.config.', 'package.json',
 ];
 const REQUIRED_READS = ['.docs/RULES.md', '.docs/RULES_SECURITY.md'];
 const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();

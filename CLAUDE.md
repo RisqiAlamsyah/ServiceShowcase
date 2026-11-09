@@ -52,7 +52,7 @@ Satu jalur: **tiket lokal**. ID: `LOCAL-YYYYMMDD-slug`, mis. `LOCAL-20261110-log
 
 - **[A]** Jika tiket belum ada, buat berdasarkan penjelasan user (format `.docs/TICKET.md`).
 - **[B]** `git checkout development && git pull`, lalu `git checkout -b {type}/{slug}`; `type` = `feature`, `fix`, `chore`, `security`, `docs`. `{slug}` **harus sama** dengan slug pada nama tiket (hook mencocokkan lewat nama branch).
-- **[C]** Hook `gate-ticket.js` menolak edit di `src/`, `app/`, `components/`, `lib/`, `prisma/`, `tests/`, `e2e/`, `public/`, `middleware.ts`, `next.config.*`, `auth.ts`, `package.json` bila tiket belum `In Progress` atau RULES + RULES_SECURITY belum dibaca.
+- **[C]** Hook `gate-ticket.js` menolak edit di `src/`, `app/`, `components/`, `lib/`, `prisma/`, `tests/`, `e2e/`, `public/`, `proxy.ts`, `middleware.ts`, `next.config.*`, `auth.ts`, `package.json` bila tiket belum `In Progress` atau RULES + RULES_SECURITY belum dibaca.
 - **[F]** Sebelum menyatakan selesai: tiket `Status: Done`, `**Tanggal selesai:**`, `**Implementasi:** [<ID>](../implementations/<ID>.md)`, centang AC, dan buat dokumen implementasi.
 - **[G]/[H]** Claude **boleh** commit dan push ke branch kerja serta membuka PR (izin tetap dari user, 9 Nov 2026), dengan batas di §5. Merge PR selalu oleh user.
 
@@ -64,7 +64,7 @@ Aturan keras, tanpa pengecualian tanpa persetujuan user:
 
 1. **Tidak ada rahasia di repo atau di bundel klien.** Hanya variabel `NEXT_PUBLIC_*` yang boleh ke browser, dan tidak pernah berisi rahasia. Semua env dibaca lewat satu modul tervalidasi (`src/lib/env.ts`, Zod), bukan `process.env` tersebar.
 2. **Semua input tidak tepercaya**: setiap Server Action, Route Handler, dan search param divalidasi dengan **Zod di server** sebelum dipakai.
-3. **Otentikasi + otorisasi di server pada setiap Server Action dan Route Handler**, termasuk cek **kepemilikan resource** (cegah IDOR). Middleware bukan satu-satunya pagar. Server Action adalah endpoint publik.
+3. **Otentikasi + otorisasi di server pada setiap Server Action dan Route Handler**, termasuk cek **kepemilikan resource** (cegah IDOR). Proxy/middleware bukan satu-satunya pagar. Server Action adalah endpoint publik.
 4. **Akses data hanya lewat lapisan data server** (`src/server/**`, `import "server-only"`). Prisma tidak dipanggil dari Client Component. Tidak ada raw SQL berinterpolasi (`$queryRawUnsafe` dilarang).
 5. **Upload R2 lewat presigned URL kedaluwarsa singkat**, tipe/ukuran divalidasi di server, key dibuat server (bukan nama berkas user), bucket privat.
 6. **Tidak ada `dangerouslySetInnerHTML`, `eval`, `innerHTML`** dengan data user.
@@ -85,7 +85,7 @@ npm run lint
 npm run typecheck          # tsc --noEmit
 npm run test               # Vitest (unit + integrasi)
 npm run test:e2e           # Playwright, bila menyentuh alur pengguna
-npm run build              # wajib bila menyentuh next.config, middleware, route, atau env
+npm run build              # wajib bila menyentuh next.config, proxy, route, atau env
 npm audit --omit=dev       # bila menambah/mengubah dependensi
 ```
 
