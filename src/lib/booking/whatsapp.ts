@@ -5,13 +5,19 @@ import type { Estimate } from "./types";
 
 const MAX_LABEL_LENGTH = 100;
 const MAX_MESSAGE_LENGTH = 2000;
-// Nomor Indonesia saja pada V1: 62 + digit pertama 1-9 + 8-13 digit lagi.
+// Indonesia (kode 62): digit pertama nasional 1-9, lalu 8-13 digit lagi (aturan lebih ketat).
 const ID_PHONE = /^62[1-9]\d{7,12}$/;
+// Negara lain mengikuti E.164: 8-15 digit total, digit pertama 1-9 (tanpa "+" dan tanpa nol di depan).
+const INTL_PHONE = /^[1-9]\d{7,14}$/;
 
 export type PhoneErrorCode = "INVALID_PHONE";
 export type UrlErrorCode = PhoneErrorCode | "MESSAGE_TOO_LONG";
 
-// Menerima "08123456789", "+62 812-3456-789", "628123456789"; menghasilkan "628123456789".
+// Hasil selalu berupa digit internasional tanpa "+" (format yang dipakai wa.me).
+//  - Indonesia: "08123456789", "+62 812-3456-789", "628123456789" -> "628123456789"
+//  - Negara lain wajib diawali "+" atau "00": "+1 415 555 2671", "0044 20 7946 0958" -> "14155552671", "442079460958"
+// Angka telanjang yang bukan 62/0 (mis. "8123456789") DITOLAK, bukan ditebak: bisa salah terbaca
+// sebagai kode negara lain dan pesan terkirim ke orang yang salah.
 export function normalizeWhatsAppNumber(raw: string): Result<string, PhoneErrorCode> {
   const invalid = fail("INVALID_PHONE", "Nomor WhatsApp tidak valid.");
   if (raw.length === 0 || raw.length > 30) return invalid;
@@ -21,18 +27,19 @@ export function normalizeWhatsAppNumber(raw: string): Result<string, PhoneErrorC
 
   let digits: string;
   if (compact.startsWith("+")) {
-    const rest = compact.slice(1);
-    if (!rest.startsWith("62")) return invalid;
-    digits = rest;
+    digits = compact.slice(1);
+  } else if (compact.startsWith("00")) {
+    digits = compact.slice(2);
+  } else if (compact.startsWith("0")) {
+    digits = `62${compact.slice(1)}`; // nomor lokal Indonesia: 08xx -> 628xx
   } else if (compact.startsWith("62")) {
     digits = compact;
-  } else if (compact.startsWith("0") && !compact.startsWith("00")) {
-    digits = `62${compact.slice(1)}`;
   } else {
     return invalid;
   }
 
-  return ID_PHONE.test(digits) ? ok(digits) : invalid;
+  const valid = digits.startsWith("62") ? ID_PHONE.test(digits) : INTL_PHONE.test(digits);
+  return valid ? ok(digits) : invalid;
 }
 
 // Teks dari pihak lain (nama paket, nama klien) tidak boleh menyisipkan baris baru atau karakter kontrol

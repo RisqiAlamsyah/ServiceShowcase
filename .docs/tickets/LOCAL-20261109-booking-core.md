@@ -4,6 +4,7 @@
 > **Tanggal dibuat:** 2026-11-09
 > **Tanggal mulai:** 2026-11-09
 > **Tanggal selesai:** 2026-11-09
+> **Tanggal mulai perbaikan:** 2026-11-09 (nomor WhatsApp internasional diizinkan, keputusan user)
 > **Status:** Done
 > **Implementasi:** [LOCAL-20261109-booking-core](../implementations/LOCAL-20261109-booking-core.md)
 > **Branch:** feature/booking-core
@@ -30,7 +31,7 @@ Fitur 1 dari SRS (urutan di `.docs/SRS.md` §4): fungsi murni yang dipakai halam
 - [x] Total dihitung dengan bilangan bulat; harga tidak valid (negatif, pecahan, melebihi batas, NaN) ditolak
 - [x] Add-on tidak dikenal, duplikat, atau terpilih saat `allowAddons=false` ditangani dengan kode galat yang jelas; urutan add-on di pesan stabil
 - [x] Nama pemesan tidak bisa menyisipkan baris baru, karakter kontrol, markup, atau parameter URL tambahan
-- [x] Nomor vendor dinormalisasi ke `62...`; nomor tidak valid ditolak
+- [x] Nomor vendor dinormalisasi ke format internasional tanpa `+` (Indonesia `08xx`/`+62`/`62` menjadi `62...`; negara lain wajib `+kode` atau `00kode`); nomor tidak valid ditolak
 - [x] Tanggal acara: format `YYYY-MM-DD`, tanggal kalender nyata, tidak lampau
 - [x] URL hasil hanya memiliki satu parameter `text` dan host `wa.me`
 
