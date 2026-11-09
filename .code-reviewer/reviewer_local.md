@@ -48,7 +48,7 @@ Lebih baik 3 temuan yang benar-benar berasal dari kode baru daripada 15 temuan y
 Prioritas utama: bug dan risiko nyata pada kode yang berubah.
 
 ### A1. Otentikasi dan Otorisasi *(prioritas tertinggi)*
-- Server Action / Route Handler / fungsi service sensitif **tanpa** `requireUser()` / pengecekan peran di server. Ingat: **Server Action adalah endpoint publik**; menyembunyikan tombol di UI atau mengandalkan middleware saja bukan otorisasi.
+- Server Action / Route Handler / fungsi service sensitif **tanpa** `requireUser()` / pengecekan peran di server. Ingat: **Server Action adalah endpoint publik**; menyembunyikan tombol di UI atau mengandalkan proxy/middleware saja bukan otorisasi.
 - **IDOR/BOLA**: resource diambil/diubah/dihapus berdasarkan `id` dari input tanpa filter kepemilikan di query (`where: { id }` tanpa `ownerId`/`userId`). Perbaikan: `findFirst({ where: { id, ownerId: user.id } })`, `updateMany/deleteMany` dengan cek `count`.
 - **Mass assignment**: `data: input` / spread `formData` langsung ke Prisma; `role`, `ownerId`, `status`, `emailVerified` yang bisa diisi dari input; skema Zod tanpa `.strict()`.
 - Auth.js: `allowDangerousEmailAccountLinking: true`, `callbackUrl`/redirect tanpa validasi (open redirect), percaya role dari JWT lama untuk aksi sensitif, cookie `httpOnly`/`secure` dimatikan, session tanpa kedaluwarsa wajar, pesan error yang membocorkan keberadaan akun (enumerasi), reset sandi dengan token yang tidak di-hash/tidak kedaluwarsa/tidak sekali pakai.
@@ -78,7 +78,7 @@ Prioritas utama: bug dan risiko nyata pada kode yang berubah.
 Endpoint login, daftar, reset sandi, OTP/email, presign, kontak, dan endpoint tulis **tanpa rate limit**; rate limit in-memory pada serverless; IP diambil dari header yang bisa dipalsukan; `findMany` tanpa batas `take` yang bisa dipicu pengguna.
 
 ### A6. Header, CSP, dan Konfigurasi
-Pelonggaran CSP (`unsafe-eval`, `unsafe-inline` pada script, wildcard `*`), penghapusan header keamanan, `ignoreBuildErrors`/`ignoreDuringBuilds: true`, `rejectUnauthorized: false`, ``productionBrowserSourceMaps: true``, `remotePatterns` terlalu lebar (`**`), `serverActions.allowedOrigins` melebar, `bodySizeLimit` dinaikkan tanpa alasan, matcher middleware yang mengecualikan rute sensitif.
+Pelonggaran CSP (`unsafe-eval`, `unsafe-inline` pada script, wildcard `*`), penghapusan header keamanan, `ignoreBuildErrors`/`ignoreDuringBuilds: true`, `rejectUnauthorized: false`, `productionBrowserSourceMaps: true`, `remotePatterns` terlalu lebar (`**`), `serverActions.allowedOrigins` melebar, `bodySizeLimit` dinaikkan tanpa alasan, matcher proxy/middleware yang mengecualikan rute sensitif.
 
 ### A7. Kebenaran Logika dan Penanganan Error
 Kondisi terbalik, off-by-one, race condition cek-lalu-tulis tanpa transaksi/constraint, hasil query dianggap selalu ada (`findUnique` tanpa cek null), `catch` kosong/menelan error, hasil `ActionResult` tidak ditangani, `revalidatePath` terlewat atau terlalu luas, `await` terlewat pada promise penting, `useEffect` dengan dependensi salah yang menimbulkan loop atau data basi.
@@ -109,7 +109,7 @@ Kalau lebih dari 5, pilih 5 yang paling berdampak dan abaikan sisanya tanpa meny
 ## Severity
 
 - **[BLOCKER]** — lubang keamanan, kebocoran data/rahasia, bypass otorisasi, kerusakan data, atau bug production. Umumnya A1–A9 yang serius.
-- **[MAJOR]** — berpotensi jadi bug atau celah pada kondisi tertentu; pertahanan berlapis hilang (mis. otorisasi hanya di middleware).
+- **[MAJOR]** — berpotensi jadi bug atau celah pada kondisi tertentu; pertahanan berlapis hilang (mis. otorisasi hanya di proxy/middleware).
 - **[MINOR]** — konvensi dan keterbacaan. Seluruh Kelompok B.
 
 ---

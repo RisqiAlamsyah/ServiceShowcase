@@ -20,7 +20,7 @@
 
 ## 2. Otentikasi (Auth.js / NextAuth)
 
-1. **Auth.js versi stabil terbaru yang kompatibel**; pembaruan keamanan diterapkan segera. Next.js juga selalu di patch terbaru (pernah ada bypass middleware, CVE-2025-29927; karena itu middleware **bukan** satu-satunya pagar, lihat §3).
+1. **Auth.js versi stabil terbaru yang kompatibel**; pembaruan keamanan diterapkan segera. Next.js juga selalu di patch terbaru (pernah ada bypass middleware, CVE-2025-29927; karena itu proxy/middleware **bukan** satu-satunya pagar, lihat §3).
 2. Strategi sesi: **database session** (Prisma Adapter) bila memungkinkan, agar sesi bisa dicabut (logout semua perangkat, ban, ganti sandi). Provider Credentials memaksa JWT; bila dipakai, umur JWT pendek (≤ 15 menit–1 jam), dan data sensitif (role, status akun) **dibaca ulang dari DB** pada aksi sensitif, bukan dipercaya dari token.
 3. Cookie sesi: `httpOnly`, `secure` (production), `sameSite: "lax"` (atau `strict` bila alur memungkinkan), nama berawalan `__Secure-`/`__Host-` di production (default Auth.js). Jangan menimpa ke `secure: false`. **[hook]**
 4. **Account linking**: `allowDangerousEmailAccountLinking` **tidak boleh `true`** (pengambilalihan akun lewat email IdP yang tidak terverifikasi). **[hook]**
@@ -36,7 +36,7 @@
 
 ## 3. Otorisasi
 
-> **Server Action = endpoint HTTP publik.** Siapa pun yang tahu ID-nya bisa memanggilnya langsung, tanpa melewati UI atau middleware.
+> **Server Action = endpoint HTTP publik.** Siapa pun yang tahu ID-nya bisa memanggilnya langsung, tanpa melewati UI atau proxy.
 
 1. **Setiap Server Action, Route Handler, dan fungsi service sensitif memanggil otorisasi di server sebagai langkah pertama**, sebelum membaca input lain:
    ```ts
@@ -52,7 +52,7 @@
    Hasil kosong → `NOT_FOUND` (bukan `FORBIDDEN`, agar tidak membocorkan keberadaan).
 3. **Mass assignment**: field yang boleh diubah ditentukan skema Zod `.strict()` per aksi; jangan `data: input` / `...formData` langsung. `role`, `ownerId`, `isAdmin`, `status`, `emailVerified` **tidak pernah** berasal dari input pengguna biasa.
 4. Peran dan izin: model sederhana (`USER`, `ADMIN`, ...) di DB, dicek lewat satu helper (`src/server/auth/`). Tidak ada `if (email === "...")`.
-5. **Middleware** (`middleware.ts`) hanya lapis kasar (redirect ke login, blok awal). Pagar sebenarnya di layout `(app)` + tiap action/route. Matcher middleware harus mencakup `/api` dan rute baru; uji bahwa rute terlindungi menolak tanpa sesi.
+5. **Proxy** (`src/proxy.ts` di Next 16; `middleware.ts` di Next ≤ 15) hanya lapis kasar (redirect ke login, blok awal). Pagar sebenarnya di layout `(app)` + tiap action/route. Matcher proxy harus mencakup `/api` dan rute baru; uji bahwa rute terlindungi menolak tanpa sesi.
 6. Halaman admin: `requireRole` di layout **dan** di setiap action admin.
 7. Setiap fitur baru yang menyentuh data pengguna wajib punya tes "akses ditolak" dan tes IDOR (`RULES.md` §6).
 
@@ -75,7 +75,7 @@
 
 ## 5. Header keamanan dan CSP
 
-Wajib aktif di production (`next.config` untuk header statis, `middleware.ts` untuk CSP ber-nonce). Verifikasi dengan `curl -I` atau securityheaders.com.
+Wajib aktif di production (`next.config` untuk header statis, `src/proxy.ts` untuk CSP ber-nonce). Verifikasi dengan `curl -I` atau securityheaders.com.
 
 | Header | Nilai |
 |---|---|
@@ -104,7 +104,7 @@ frame-ancestors 'none';
 upgrade-insecure-requests;
 ```
 
-- Nonce dibuat per request di middleware (`crypto.randomUUID()` → base64) dan diteruskan lewat header `x-nonce`; konsekuensinya halaman jadi dinamis (terima).
+- Nonce dibuat per request di proxy (`crypto.randomUUID()` → base64) dan diteruskan lewat header `x-nonce`; konsekuensinya halaman yang memakai nonce **dirender dinamis** (`await connection()`), tidak bisa di-cache statis di CDN. Untuk halaman publik yang sensitif performa (profil vendor), pertimbangkan ulang kompromi ini per fitur dan catat keputusannya di tiket.
 - Tambah dulu dengan `Content-Security-Policy-Report-Only` bila ada risiko memecah halaman, lalu naikkan ke enforce.
 - Skrip pihak ketiga (analytics, widget): butuh persetujuan user; pakai SRI bila dari CDN; hindari bila bisa.
 

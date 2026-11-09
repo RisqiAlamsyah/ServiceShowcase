@@ -1,7 +1,7 @@
 # RULES_TEMPLATES.md — Template Kode ServiceShowcase
 
 > Dibaca saat membuat Server Action, Route Handler, service, atau halaman. Aturan umum: `RULES.md`; keamanan: `RULES_SECURITY.md`.
-> Contoh memakai domain fiktif `project`. Ikuti API versi Next.js/Auth.js/Prisma yang terpasang; sesuaikan bila berbeda (mis. `params` berupa `Promise` di Next 15+).
+> Contoh memakai domain fiktif `project`. Ikuti API versi Next.js/Auth.js/Prisma yang terpasang; sesuaikan bila berbeda (mis. `params`/`searchParams` berupa `Promise` sejak Next 15; `middleware` menjadi `proxy` di Next 16; versi proyek ini: Next 16).
 > Urutan wajib di setiap titik masuk: **otentikasi → otorisasi → validasi → service → revalidasi → hasil seragam**.
 
 ---
@@ -216,9 +216,10 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/server/auth/guards";
 import { getProjectForUser } from "@/server/project/service";
 
-export default async function ProjectPage({ params }: { params: { id: string } }) { // Next 15+: params Promise
+export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;                            // Next 15+: params adalah Promise
   const user = await requireUser();                       // layout (app) juga memeriksa; ini lapis kedua
-  const project = await getProjectForUser(user.id, params.id);
+  const project = await getProjectForUser(user.id, id);
   if (!project) notFound();                               // bukan milik user = 404
   return (
     <main className="mx-auto max-w-3xl p-6">
@@ -230,12 +231,12 @@ export default async function ProjectPage({ params }: { params: { id: string } }
 
 ---
 
-## 8. Middleware (pagar kasar + CSP nonce) — `src/middleware.ts`
+## 8. Proxy (pagar kasar + CSP nonce) — `src/proxy.ts` (Next 16; di Next ≤ 15: `middleware.ts`)
 
 ```ts
 import { NextResponse, type NextRequest } from "next/server";
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const csp = [
     "default-src 'self'",
