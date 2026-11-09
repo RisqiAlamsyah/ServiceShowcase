@@ -84,6 +84,11 @@ describe("bookingInputSchema: tanggal acara", () => {
     expect(errorFields({ ...valid, eventDate })).toContain("eventDate");
   });
 
+  it('tanggal kosong memberi pesan yang jelas (bukan "tidak valid")', () => {
+    const r = schema.safeParse({ ...valid, eventDate: "" });
+    expect(!r.success && r.error.issues[0]?.message).toBe("Pilih tanggal acara.");
+  });
+
   it("batas 3 tahun: tahun ke-3 boleh, tahun ke-4 tidak", () => {
     expect(schema.safeParse({ ...valid, eventDate: "2029-12-31" }).success).toBe(true);
     expect(schema.safeParse({ ...valid, eventDate: "2030-01-01" }).success).toBe(false);

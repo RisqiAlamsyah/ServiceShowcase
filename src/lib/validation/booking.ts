@@ -32,6 +32,7 @@ export function createBookingInputSchema(todayIso: string) {
         ),
       eventDate: z
         .string()
+        .min(1, "Pilih tanggal acara.")
         .refine(isValidIsoDate, "Tanggal tidak valid.")
         .refine((d) => !isBeforeIsoDate(d, todayIso), "Tanggal acara tidak boleh sudah lewat.")
         .refine(

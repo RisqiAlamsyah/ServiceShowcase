@@ -11,6 +11,12 @@ export type BookingAddon = {
   price: number;
 };
 
+// Paket beserta add-on-nya, dalam bentuk yang aman dikirim ke Client Component (data publik saja).
+export type PublicPackageOffer = BookingPackage & {
+  description: string;
+  addons: BookingAddon[];
+};
+
 export type EstimateLine = {
   id: string;
   label: string;
