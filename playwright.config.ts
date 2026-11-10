@@ -20,6 +20,7 @@ export default defineConfig({
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
-    env: { NEXT_PUBLIC_SITE_URL: BASE_URL },
+    // AUTH_TRUST_HOST: Auth.js menolak host asing di build produksi; di Vercel ini otomatis.
+    env: { NEXT_PUBLIC_SITE_URL: BASE_URL, AUTH_TRUST_HOST: "true" },
   },
 });

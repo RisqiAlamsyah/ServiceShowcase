@@ -2,7 +2,23 @@ import { NextResponse, type NextRequest } from "next/server";
 
 // Next.js 16: "middleware" diganti nama menjadi "proxy". CSP ber-nonce per request (RULES_SECURITY §5).
 // Proxy hanyalah lapis kasar; otorisasi sebenarnya ada di tiap action/route/layout (RULES_SECURITY §3.5).
+// Nama cookie sesi Auth.js (dengan/tanpa awalan __Secure- dan potongan .0/.1).
+const SESSION_COOKIE = "authjs.session-token";
+
 export function proxy(request: NextRequest) {
+  // Pagar kasar: tanpa cookie sesi, /dashboard diarahkan ke login. Validasi sesi sebenarnya
+  // ada di layout (app) dan tiap action, karena cookie ini hanya dicek keberadaannya.
+  const { pathname, search } = request.nextUrl;
+  if (
+    (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) &&
+    !request.cookies.getAll().some((c) => c.name.includes(SESSION_COOKIE))
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/masuk";
+    url.search = `?next=${encodeURIComponent(pathname + search)}`;
+    return NextResponse.redirect(url);
+  }
+
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const isDev = process.env.NODE_ENV === "development";
 

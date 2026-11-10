@@ -17,6 +17,9 @@ concurrency:
 env:
   # Nilai publik palsu agar build/tes tidak bergantung pada rahasia.
   NEXT_PUBLIC_SITE_URL: http://localhost:3000
+  # Env server wajib divalidasi saat build; di CI berisi nilai palsu (tidak ada koneksi DB sungguhan).
+  # AUTH_SECRET dibuat acak per run oleh langkah "Buat AUTH_SECRET sementara" (tanpa nilai di repo).
+  DATABASE_URL: postgresql://user:password@localhost:5432/ci?sslmode=require
 
 jobs:
   quality:
@@ -50,6 +53,8 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - name: Buat AUTH_SECRET sementara
+        run: echo "AUTH_SECRET=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
       - run: npm run build
 
   audit:
@@ -96,6 +101,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - name: Buat AUTH_SECRET sementara
+        run: echo "AUTH_SECRET=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
       # playwright.config.ts menjalankan build produksi sendiri.
       - run: npm run test:e2e
       - if: failure()

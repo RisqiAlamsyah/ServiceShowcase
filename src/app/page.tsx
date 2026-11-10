@@ -24,6 +24,15 @@ export default async function HomePage() {
       >
         Coba kalkulator estimasi
       </Link>
+      <p className="mt-8 text-sm text-muted">
+        <Link href="/masuk" className="font-semibold text-accent-strong underline">
+          Masuk
+        </Link>{" "}
+        atau{" "}
+        <Link href="/daftar" className="font-semibold text-accent-strong underline">
+          buat akun
+        </Link>
+      </p>
     </main>
   );
 }

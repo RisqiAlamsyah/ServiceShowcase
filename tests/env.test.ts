@@ -28,29 +28,36 @@ describe("parseClientEnv", () => {
 
 describe("parseServerEnv", () => {
   const DB = "postgresql://user:password@localhost:5432/db?sslmode=require";
+  const SECRET = "x".repeat(32);
+  const valid = { DATABASE_URL: DB, AUTH_SECRET: SECRET };
 
   it("memakai default development bila NODE_ENV kosong", () => {
-    expect(parseServerEnv({ DATABASE_URL: DB }).NODE_ENV).toBe("development");
+    expect(parseServerEnv(valid).NODE_ENV).toBe("development");
   });
 
   it("menolak NODE_ENV di luar daftar", () => {
-    expect(() => parseServerEnv({ NODE_ENV: "staging", DATABASE_URL: DB })).toThrowError(
-      /NODE_ENV/,
-    );
+    expect(() => parseServerEnv({ ...valid, NODE_ENV: "staging" })).toThrowError(/NODE_ENV/);
   });
 
   it("menerima URL PostgreSQL", () => {
-    expect(parseServerEnv({ DATABASE_URL: DB }).DATABASE_URL).toBe(DB);
+    expect(parseServerEnv(valid).DATABASE_URL).toBe(DB);
   });
 
   it("menolak DATABASE_URL yang hilang atau bukan PostgreSQL", () => {
-    expect(() => parseServerEnv({})).toThrowError(/DATABASE_URL/);
-    expect(() => parseServerEnv({ DATABASE_URL: "mysql://u:p@h/db" })).toThrowError(/DATABASE_URL/);
+    expect(() => parseServerEnv({ AUTH_SECRET: SECRET })).toThrowError(/DATABASE_URL/);
+    expect(() => parseServerEnv({ ...valid, DATABASE_URL: "mysql://u:p@h/db" })).toThrowError(
+      /DATABASE_URL/,
+    );
   });
 
-  it("tidak membocorkan isi DATABASE_URL di pesan error", () => {
+  it("menolak AUTH_SECRET yang hilang atau terlalu pendek", () => {
+    expect(() => parseServerEnv({ DATABASE_URL: DB })).toThrowError(/AUTH_SECRET/);
+    expect(() => parseServerEnv({ ...valid, AUTH_SECRET: "pendek" })).toThrowError(/AUTH_SECRET/);
+  });
+
+  it("tidak membocorkan nilai rahasia di pesan error", () => {
     try {
-      parseServerEnv({ DATABASE_URL: "mysql://pengguna:sandi-rahasia@host/db" });
+      parseServerEnv({ DATABASE_URL: "mysql://pengguna:sandi-rahasia@host/db", AUTH_SECRET: "x" });
       expect.unreachable();
     } catch (e) {
       expect(String(e)).not.toContain("sandi-rahasia");
