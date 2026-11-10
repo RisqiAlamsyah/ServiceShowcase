@@ -3,7 +3,7 @@
 **Branch:** feature/prisma-database  **Tanggal:** 2026-11-10  **PR:** (diisi setelah dibuka)
 
 ## Ringkasan
-Fondasi data: Prisma 7.10.1 + adapter `pg`, skema awal (User, Profile, ServicePackage, Addon, PortfolioItem), klien singleton server-only, validasi `DATABASE_URL`, dan berkas SQL migrasi awal. Migrasi **belum diterapkan** ke database nyata karena `.env.local` belum ada.
+Fondasi data: Prisma 7.10.1 + adapter `pg`, skema awal (User, Profile, ServicePackage, Addon, PortfolioItem), klien singleton server-only, validasi `DATABASE_URL`, dan berkas SQL migrasi awal. Migrasi awal sudah diterapkan oleh user ke Neon (branch `development`, region AWS Singapore) setelah PR di-merge.
 
 ## File yang Berubah
 - `prisma/schema.prisma`: model + enum sesuai `RULES_DB.md` §2 (cuid, `@map`/`@@map`, `owner_id` + indeks, FK `onDelete: Cascade`).
@@ -32,10 +32,12 @@ Data pribadi (email, hash sandi, nomor WhatsApp) kini punya kolom di skema; belu
 - `npm run build` → lulus (dengan `NEXT_PUBLIC_SITE_URL`)
 - `npm audit --omit=dev --audit-level=high` → 0 kerentanan
 - SQL migrasi ditinjau: hanya `CREATE`, tanpa `DROP`/perubahan destruktif
-- **Dilewati:** migrasi dari DB kosong dan DB berisi data contoh (tidak ada database; belum ada `.env.local`). Skema belum pernah dijalankan ke PostgreSQL sungguhan.
+- **Pembaruan setelah merge:** user menjalankan `npm run db:migrate` di Neon branch `development`: `20261110000000_init` berhasil diterapkan ("Your database is now in sync with your schema"). Ini mencakup pengujian dari DB kosong.
+- **Dilewati:** pengujian dari DB berisi data contoh (tabel masih kosong; belum ada seed).
+- Kendala yang dialami: P1001 (server tak terjangkau) pada percobaan pertama; teratasi setelah `channel_binding=require` dihapus dan koneksi diulang (kemungkinan compute baru bangun / jaringan).
 - `npm run test:e2e` → dilewati lokal (tidak menyentuh UI); dijalankan CI
 
 ## Open Question
-1. User membuat project Neon dev, mengisi `DATABASE_URL` (host `-pooler`) dan `DIRECT_URL` (tanpa `-pooler`) di `.env.local`, lalu menjalankan `npm run db:migrate` dan melaporkan hasilnya (atau meminta Claude menjalankannya setelah `.env.local` ada dan dipastikan menunjuk DB dev).
-2. Tambahkan ke `.env.example` (oleh user): `DATABASE_URL=postgresql://user:password@ep-example-pooler.region.aws.neon.tech/db?sslmode=require` dan `DIRECT_URL=postgresql://user:password@ep-example.region.aws.neon.tech/db?sslmode=require`.
-3. Tambahkan `DATABASE_URL` (pooled) ke Environment Variables Vercel **hanya** saat kode mulai memakai `db`; jangan `DIRECT_URL` di Vercel.
+1. `.env.example` belum memuat `DATABASE_URL` dan `DIRECT_URL` (izin menolak penulisan oleh Claude). Tambahkan oleh user: `DATABASE_URL=postgresql://user:password@ep-example-pooler.region.aws.neon.tech/db?sslmode=require` dan `DIRECT_URL=postgresql://user:password@ep-example.region.aws.neon.tech/db?sslmode=require`.
+2. Tambahkan `DATABASE_URL` (pooled) ke Environment Variables Vercel **hanya** saat kode mulai memakai `db`; jangan `DIRECT_URL` di Vercel.
+3. Insiden: connection string dev sempat tertempel di chat; sandi sudah di-reset oleh user. `neon init` menambah `@neon/config`, `@neon/env`, dan `neon.ts`; **dibuang** (tidak disetujui). Hanya `.neon` di `.gitignore` dipertahankan.
