@@ -8,6 +8,9 @@ export const RATE_RULES = {
   loginEmail: { max: 5, windowSeconds: 15 * 60 },
   loginIp: { max: 20, windowSeconds: 15 * 60 },
   registerIp: { max: 5, windowSeconds: 60 * 60 },
+  // Penulisan profil per pengguna; ganti slug dibatasi lebih ketat (link lama mati, SRS keputusan B).
+  profileWrite: { max: 30, windowSeconds: 60 * 60 },
+  slugChange: { max: 3, windowSeconds: 24 * 60 * 60 },
 } as const satisfies Record<string, RateRule>;
 
 // Kunci di-hash agar email/IP mentah tidak tersimpan di tabel (RULES_SECURITY §11.3).

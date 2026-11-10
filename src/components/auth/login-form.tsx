@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { loginAction } from "@/actions/auth";
-import { TextField } from "@/components/auth/text-field";
+import { TextField } from "@/components/ui/text-field";
 
 export function LoginForm({ next }: { next: string }) {
   const [state, formAction, pending] = useActionState(loginAction, null);
