@@ -1,0 +1,122 @@
+// Konvensi: RULES_DB.md §2. Prisma 7: URL koneksi tidak ada di sini; migrasi memakai
+// prisma.config.ts (DIRECT_URL), runtime memakai adapter di src/lib/db.ts (DATABASE_URL).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+// Tier langganan. Hanya diubah proses tepercaya (admin/billing), tidak pernah dari input pengguna.
+enum Plan {
+  FREE
+  PRO
+}
+
+enum MediaStatus {
+  PENDING
+  READY
+}
+
+model User {
+  id            String    @id @default(cuid())
+  // Disimpan huruf kecil oleh service (bukan oleh DB); keunikan ditegakkan di DB.
+  email         String    @unique
+  name          String?   @db.VarChar(100)
+  emailVerified DateTime? @map("email_verified")
+  // Hash Argon2id. Null untuk akun yang hanya memakai Google SSO.
+  passwordHash  String?   @map("password_hash")
+  role          Role      @default(USER)
+  plan          Plan      @default(FREE)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  profile        Profile?
+  packages       ServicePackage[]
+  addons         Addon[]
+  portfolioItems PortfolioItem[]
+
+  @@map("users")
+}
+
+model Profile {
+  id           String   @id @default(cuid())
+  ownerId      String   @unique @map("owner_id")
+  // Regex dan daftar slug terlarang divalidasi Zod di server (SRS §3); unik global di DB.
+  slug         String   @unique @db.VarChar(30)
+  businessName String   @map("business_name") @db.VarChar(100)
+  // Format E.164 tanpa tanda plus, divalidasi di server.
+  whatsapp     String   @db.VarChar(20)
+  bio          String?  @db.VarChar(500)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model ServicePackage {
+  id          String   @id @default(cuid())
+  ownerId     String   @map("owner_id")
+  title       String   @db.VarChar(100)
+  description String   @default("") @db.VarChar(500)
+  // Rupiah, bilangan bulat.
+  basePrice   Int      @map("base_price")
+  position    Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  owner  User    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  addons Addon[]
+
+  @@index([ownerId])
+  @@map("service_packages")
+}
+
+model Addon {
+  id        String   @id @default(cuid())
+  // Disalin dari paket induk agar kepemilikan bisa disaring langsung di query (anti-IDOR).
+  ownerId   String   @map("owner_id")
+  packageId String   @map("package_id")
+  name      String   @db.VarChar(100)
+  price     Int
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  owner   User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  package ServicePackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+  @@index([packageId])
+  @@map("addons")
+}
+
+model PortfolioItem {
+  id        String      @id @default(cuid())
+  ownerId   String      @map("owner_id")
+  // Key objek R2 buatan server (uploads/<userId>/<uuid>.<ext>), bukan nama berkas pengguna.
+  objectKey String      @unique @map("object_key")
+  category  String?     @db.VarChar(50)
+  caption   String?     @db.VarChar(200)
+  width     Int?
+  height    Int?
+  status    MediaStatus @default(PENDING)
+  position  Int         @default(0)
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+  @@map("portfolio_items")
+}
