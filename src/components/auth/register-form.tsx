@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { registerAction } from "@/actions/auth";
-import { TextField } from "@/components/auth/text-field";
+import { TextField } from "@/components/ui/text-field";
 import { PASSWORD_MAX, PASSWORD_MIN } from "@/lib/validation/auth";
 
 export function RegisterForm() {

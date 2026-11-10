@@ -4,28 +4,21 @@ type Props = {
   id: string;
   name: string;
   label: string;
-  type?: "text" | "email" | "password";
-  autoComplete: string;
   errors?: string[] | undefined;
   hint?: string;
-  required?: boolean;
-  minLength?: number;
   maxLength?: number;
+  rows?: number;
   defaultValue?: string;
 };
 
-// Label terhubung ke input; galat dan petunjuk dibacakan lewat aria-describedby.
-export function TextField({
+export function TextAreaField({
   id,
   name,
   label,
-  type = "text",
-  autoComplete,
   errors,
   hint,
-  required = true,
-  minLength,
   maxLength,
+  rows = 4,
   defaultValue,
 }: Props) {
   const hasError = Boolean(errors?.length);
@@ -38,19 +31,16 @@ export function TextField({
       <label htmlFor={id} className="font-medium">
         {label}
       </label>
-      <input
+      <textarea
         id={id}
         name={name}
-        type={type}
-        autoComplete={autoComplete}
-        required={required}
-        minLength={minLength}
+        rows={rows}
         maxLength={maxLength}
         defaultValue={defaultValue}
         aria-invalid={hasError}
         aria-describedby={describedBy || undefined}
         className={cx(
-          "mt-1 block min-h-11 w-full rounded-md border bg-surface px-3 py-2 text-base text-ink",
+          "mt-1 block w-full rounded-md border bg-surface px-3 py-2 text-base text-ink",
           hasError ? "border-danger" : "border-line",
         )}
       />
