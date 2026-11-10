@@ -6,6 +6,8 @@ build/
 coverage/
 *.tsbuildinfo
 next-env.d.ts
+# klien Prisma hasil generate (dibuat oleh postinstall)
+src/generated/
 
 # rahasia (jangan pernah di-commit; hanya *.example yang boleh)
 .env

@@ -5,6 +5,9 @@ import { z } from "zod";
 
 export const serverEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  // Koneksi pooled untuk runtime. DIRECT_URL (migrasi) sengaja tidak ada di sini: hanya dibaca
+  // prisma.config.ts, supaya kredensial DDL tidak pernah ada di runtime aplikasi.
+  DATABASE_URL: z.string().refine((v) => /^postgres(ql)?:\/\//.test(v), "harus URL PostgreSQL"),
 });
 
 export const clientEnvSchema = z.object({

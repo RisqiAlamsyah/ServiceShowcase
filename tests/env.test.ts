@@ -27,11 +27,33 @@ describe("parseClientEnv", () => {
 });
 
 describe("parseServerEnv", () => {
+  const DB = "postgresql://user:password@localhost:5432/db?sslmode=require";
+
   it("memakai default development bila NODE_ENV kosong", () => {
-    expect(parseServerEnv({}).NODE_ENV).toBe("development");
+    expect(parseServerEnv({ DATABASE_URL: DB }).NODE_ENV).toBe("development");
   });
 
   it("menolak NODE_ENV di luar daftar", () => {
-    expect(() => parseServerEnv({ NODE_ENV: "staging" })).toThrowError(/NODE_ENV/);
+    expect(() => parseServerEnv({ NODE_ENV: "staging", DATABASE_URL: DB })).toThrowError(
+      /NODE_ENV/,
+    );
+  });
+
+  it("menerima URL PostgreSQL", () => {
+    expect(parseServerEnv({ DATABASE_URL: DB }).DATABASE_URL).toBe(DB);
+  });
+
+  it("menolak DATABASE_URL yang hilang atau bukan PostgreSQL", () => {
+    expect(() => parseServerEnv({})).toThrowError(/DATABASE_URL/);
+    expect(() => parseServerEnv({ DATABASE_URL: "mysql://u:p@h/db" })).toThrowError(/DATABASE_URL/);
+  });
+
+  it("tidak membocorkan isi DATABASE_URL di pesan error", () => {
+    try {
+      parseServerEnv({ DATABASE_URL: "mysql://pengguna:sandi-rahasia@host/db" });
+      expect.unreachable();
+    } catch (e) {
+      expect(String(e)).not.toContain("sandi-rahasia");
+    }
   });
 });
