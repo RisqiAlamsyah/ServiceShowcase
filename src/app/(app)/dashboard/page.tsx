@@ -4,6 +4,8 @@ import { connection } from "next/server";
 import { logoutAction } from "@/actions/auth";
 import { clientEnv } from "@/lib/env.client";
 import { requireUser } from "@/server/auth/guards";
+import { PLAN_LIMITS } from "@/lib/plans";
+import { listPackagesForUser } from "@/server/package/service";
 import { getProfileForUser } from "@/server/profile/service";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -11,7 +13,10 @@ export const metadata: Metadata = { title: "Dashboard" };
 export default async function DashboardPage() {
   await connection();
   const user = await requireUser(); // lapis kedua setelah layout
-  const profile = await getProfileForUser(user.id);
+  const [profile, packages] = await Promise.all([
+    getProfileForUser(user.id),
+    listPackagesForUser(user.id),
+  ]);
   const siteHost = new URL(clientEnv.NEXT_PUBLIC_SITE_URL).host;
 
   return (
@@ -42,6 +47,24 @@ export default async function DashboardPage() {
           className="mt-4 inline-flex min-h-11 items-center rounded-md bg-ink px-5 py-3 font-semibold text-canvas hover:bg-ink/90"
         >
           {profile ? "Ubah profil" : "Lengkapi profil"}
+        </Link>
+      </section>
+
+      <section
+        aria-labelledby="package-status"
+        className="mt-4 rounded-lg border border-line bg-surface p-5"
+      >
+        <h2 id="package-status" className="font-semibold">
+          Paket dan add-on
+        </h2>
+        <p className="mt-2 text-muted">
+          {packages.length} dari {PLAN_LIMITS[user.plan].maxPackages} paket terpakai.
+        </p>
+        <Link
+          href="/dashboard/paket"
+          className="mt-4 inline-flex min-h-11 items-center rounded-md bg-ink px-5 py-3 font-semibold text-canvas hover:bg-ink/90"
+        >
+          {packages.length > 0 ? "Kelola paket" : "Tambah paket"}
         </Link>
       </section>
 

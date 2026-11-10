@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { expect, test, type Browser, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+import { registerAndLogin } from "./helpers/session";
 
 // Alur penuh profil + slug. Butuh DATABASE_URL + AUTH_SECRET sungguhan (database DEV), sehingga
 // dilewati di CI. Jalankan lokal: E2E_WITH_DB=1 npx playwright test profile-flow
@@ -7,32 +8,7 @@ import { expect, test, type Browser, type Page } from "@playwright/test";
 test.skip(!process.env.E2E_WITH_DB, "butuh database dev (set E2E_WITH_DB=1)");
 test.describe.configure({ mode: "serial" });
 
-const randomByte = () => 1 + Math.floor(Math.random() * 254);
-const randomIp = () => `10.${randomByte()}.${randomByte()}.${randomByte()}`;
 const formError = (page: Page) => page.locator('p[role="alert"]');
-
-// Daftar lalu masuk, sampai tiba di /dashboard. IP acak agar tidak berbagi pembatas laju antar-run.
-async function registerAndLogin(browser: Browser, label: string) {
-  const context = await browser.newContext({ extraHTTPHeaders: { "x-real-ip": randomIp() } });
-  const page = await context.newPage();
-  const email = `e2e-${label}-${randomUUID()}@example.test`;
-  const secretValue = `sandi-${randomUUID()}`;
-
-  await page.goto("/daftar");
-  await page.getByLabel("Nama").fill(`Penguji ${label}`);
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Sandi", { exact: true }).fill(secretValue);
-  await page.getByLabel("Ulangi sandi").fill(secretValue);
-  await page.getByRole("button", { name: "Daftar" }).click();
-  await expect(page).toHaveURL(/\/masuk\?daftar=1/);
-
-  await page.goto("/masuk");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Sandi").fill(secretValue);
-  await page.getByRole("button", { name: "Masuk" }).click();
-  await expect(page).toHaveURL(/\/dashboard$/);
-  return { context, page };
-}
 
 async function fillProfile(
   page: Page,

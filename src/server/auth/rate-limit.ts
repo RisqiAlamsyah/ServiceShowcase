@@ -11,6 +11,8 @@ export const RATE_RULES = {
   // Penulisan profil per pengguna; ganti slug dibatasi lebih ketat (link lama mati, SRS keputusan B).
   profileWrite: { max: 30, windowSeconds: 60 * 60 },
   slugChange: { max: 3, windowSeconds: 24 * 60 * 60 },
+  // Penulisan paket dan add-on per pengguna (semua aksi tulis berbagi satu kuota).
+  packageWrite: { max: 120, windowSeconds: 60 * 60 },
 } as const satisfies Record<string, RateRule>;
 
 // Kunci di-hash agar email/IP mentah tidak tersimpan di tabel (RULES_SECURITY §11.3).
