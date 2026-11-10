@@ -1,12 +1,21 @@
 import { randomUUID } from "node:crypto";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+// Next menyisipkan elemen role="alert" sendiri (route announcer), jadi batasi ke <p> galat form.
+const formError = (page: Page) => page.locator('p[role="alert"]');
 
 // Alur penuh daftar → masuk → keluar. Butuh DATABASE_URL + AUTH_SECRET sungguhan (database DEV),
 // sehingga dilewati di CI. Jalankan lokal: E2E_WITH_DB=1 npm run test:e2e -- auth-flow
-// Setiap proyek (desktop/mobile) membuat satu akun uji unik; pembatas pendaftaran 5/jam per IP,
-// jadi jangan menjalankan lebih dari beberapa kali per jam.
+// Setiap proyek (desktop/mobile) membuat satu akun uji unik di database dev (email @example.test).
 test.skip(!process.env.E2E_WITH_DB, "butuh database dev (set E2E_WITH_DB=1)");
 test.describe.configure({ mode: "serial" });
+
+// Tiap run memakai IP acak (header x-real-ip yang dibaca pembatas laju) supaya tidak berbagi bucket
+// dengan run sebelumnya. Di Vercel header ini diisi platform, bukan klien.
+const randomByte = () => 1 + Math.floor(Math.random() * 254);
+test.use({
+  extraHTTPHeaders: { "x-real-ip": `10.${randomByte()}.${randomByte()}.${randomByte()}` },
+});
 
 test("daftar, gagal masuk generik, masuk, sesi bertahan, lalu keluar", async ({ page }, info) => {
   const email = `e2e-${info.project.name}-${randomUUID()}@example.test`;
@@ -23,19 +32,24 @@ test("daftar, gagal masuk generik, masuk, sesi bertahan, lalu keluar", async ({ 
   await expect(page.getByRole("status")).toContainText("Pendaftaran diproses");
 
   // Sandi salah → pesan generik, tetap di /masuk.
+  // Tiap percobaan dimulai dari halaman segar: React me-reset form setelah action selesai dan pesan
+  // galat lama tetap tampil, sehingga tanpa ini isian bisa terhapus di tengah pengisian.
+  await page.goto("/masuk");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Sandi").fill(`${secretValue}-salah`);
   await page.getByRole("button", { name: "Masuk" }).click();
-  await expect(page.getByRole("alert")).toContainText("Email atau sandi salah");
+  await expect(formError(page)).toContainText("Email atau sandi salah");
   await expect(page).toHaveURL(/\/masuk/);
 
   // Email tak terdaftar → pesan yang sama persis.
+  await page.goto("/masuk");
   await page.getByLabel("Email").fill(`tidak-ada-${randomUUID()}@example.test`);
   await page.getByLabel("Sandi").fill(secretValue);
   await page.getByRole("button", { name: "Masuk" }).click();
-  await expect(page.getByRole("alert")).toContainText("Email atau sandi salah");
+  await expect(formError(page)).toContainText("Email atau sandi salah");
 
   // Sandi benar → /dashboard.
+  await page.goto("/masuk");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Sandi").fill(secretValue);
   await page.getByRole("button", { name: "Masuk" }).click();

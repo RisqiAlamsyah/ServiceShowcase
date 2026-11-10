@@ -4,6 +4,7 @@
 > **Tanggal dibuat:** 2026-11-10
 > **Tanggal mulai:** 2026-11-10
 > **Tanggal selesai:** 2026-11-10
+> **Tanggal mulai perbaikan:** 2026-11-10 (login selalu gagal karena field ekstra Auth.js ditolak skema strict)
 > **Status:** Done
 > **Implementasi:** [LOCAL-20261110-auth-credentials](../implementations/LOCAL-20261110-auth-credentials.md)
 > **Branch:** feature/auth-credentials
@@ -50,9 +51,9 @@ Dependensi (pin tanpa `^`): `next-auth@5.0.0-beta.32`, `@node-rs/argon2`.
 - [x] `npm run lint` dan `npm run typecheck` lulus
 - [x] `npm run test` lulus: berhasil, input tidak valid, akses ditolak
 - [x] `npm run test:e2e` lulus (alur tanpa DB)
-- [ ] Alur penuh dengan DB (`E2E_WITH_DB=1`) lulus terhadap Neon dev (menunggu `AUTH_SECRET` di `.env.local` oleh user)
+- [x] Alur penuh dengan DB (`E2E_WITH_DB=1`) lulus terhadap Neon dev (desktop + mobile)
 - [x] `npm run build` lulus
-- [ ] Migrasi `RateLimitBucket` diterapkan di Neon dev (`npm run db:migrate`, oleh user)
+- [x] Migrasi `RateLimitBucket` diterapkan di Neon dev (`npm run db:migrate`, oleh user)
 - [x] `npm audit --omit=dev` tanpa High/Critical
 
 ## Checklist Keamanan (`RULES_SECURITY.md` §13)
@@ -64,6 +65,6 @@ Dependensi (pin tanpa `^`): `next-auth@5.0.0-beta.32`, `@node-rs/argon2`.
 - [x] Dependensi disetujui, versi dikunci, `npm audit` bersih
 
 ## Definition of Done
-- [ ] Semua AC terpenuhi (kecuali dua butir verifikasi DB di atas)
+- [x] Semua AC terpenuhi
 - [x] Dokumen implementasi dibuat
 - [x] Tidak ada rahasia di perubahan (diff diperiksa)

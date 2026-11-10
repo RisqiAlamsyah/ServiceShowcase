@@ -7,7 +7,7 @@ Daftar, login, dan logout dengan email + sandi memakai next-auth 5.0.0-beta.32 (
 
 ## File yang Berubah
 - `src/auth.ts`, `src/app/api/auth/[...nextauth]/route.ts`, `src/types/next-auth.d.ts`: konfigurasi Auth.js (Credentials, JWT, callback minimal).
-- `src/server/auth/{guards,password,rate-limit}.ts`, `src/server/user/service.ts`: `requireUser` (role/plan dari DB), Argon2id, rate limit atomik, akses data user.
+- `src/server/auth/{guards,password,rate-limit,credentials}.ts`, `src/server/user/service.ts`: `requireUser` (role/plan dari DB), Argon2id, rate limit atomik, logika `authorize` yang teruji (`authorizeCredentials`), akses data user.
 - `src/actions/auth.ts`: `registerAction`, `loginAction`, `logoutAction`.
 - `src/lib/validation/auth.ts`, `src/lib/auth/{redirect,common-passwords}.ts`: skema Zod `.strict()`, pencegah open redirect, daftar sandi umum.
 - `src/components/auth/*`, `src/app/{masuk,daftar}/page.tsx`, `src/app/(app)/{layout,dashboard/page}.tsx`: UI dan pagar halaman. Tautan Masuk/Daftar di beranda.
@@ -29,6 +29,9 @@ Daftar, login, dan logout dengan email + sandi memakai next-auth 5.0.0-beta.32 (
 - **`next-auth` masih berlabel beta** (5.0.0-beta.32): dikunci tepat; perlu dipantau untuk pembaruan keamanan.
 - **Sandi:** min 12, maks 128, tolak sandi umum (daftar kecil bawaan), monoton, atau sama dengan email. Cek kebocoran HIBP belum ada.
 - **Fixture sandi di tes** memakai konstanta dengan komentar `sec-ok` (sandi fiktif; hook menolak literal `password: "..."`).
+- **Bug nyata ditemukan lewat uji ke DB (diperbaiki):** Auth.js menambahkan field ekstra (mis. `callbackUrl`, `csrfToken`) ke objek kredensial, sehingga `loginSchema.strict()` menolak SEMUA login, termasuk sandi benar. Tes unit dengan mock tidak menangkapnya. Perbaikan: `authorizeCredentials` hanya mengambil `email` dan `password`; ada tes khusus. Terkonfirmasi: kode lama gagal di e2e DB, kode baru lulus.
+- **Bug tes lain yang ditemukan:** (a) `getByRole("alert")` cocok juga dengan route announcer Next; (b) pesan galat lama masih tampil saat percobaan berikutnya dikirim, sehingga isian terhapus oleh reset form React 19 di tengah pengisian; e2e kini memuat ulang `/masuk` sebelum tiap percobaan; (c) tes memakai IP acak (`x-real-ip`) agar tidak kena pembatas pendaftaran antar-run (pembatas sendiri terbukti bekerja: pendaftaran ke-6 dalam sejam ditolak).
+- **Catatan UX (belum diubah):** React me-reset form setelah login gagal sehingga email yang diketik ikut terhapus. Dapat diperbaiki dengan mengembalikan nilai non-rahasia (email) dari action; kandidat tiket kecil.
 - **Bug tes yang ditemukan:** `beforeEach(() => mock.mockReset())` mengembalikan fungsi mock yang dianggap teardown oleh Vitest; diperbaiki dengan blok `{}`.
 
 ## Dampak Keamanan
@@ -38,13 +41,16 @@ Belum dipenuhi: IDOR (belum ada resource milik pengguna), cek sandi bocor, `Orig
 
 ## Verifikasi
 - `npm run lint` → lulus; `npm run typecheck` → lulus
-- `npm run test` → 202/202 lulus (PowerShell)
+- `npm run test` → 208/208 lulus (PowerShell)
 - `npm run build` → lulus dengan env palsu (`DATABASE_URL`, `AUTH_SECRET`, `NEXT_PUBLIC_SITE_URL`); semua rute terdaftar
 - `npm run test:e2e` (desktop + mobile, tanpa DB) → 68 lulus, 2 dilewati (`auth-flow`, butuh DB)
 - `npm audit --omit=dev --audit-level=high` → 0 kerentanan
-- **Belum dijalankan:** migrasi `RateLimitBucket` di Neon dev dan `auth-flow.spec.ts` dengan DB nyata. Alasan: `AUTH_SECRET` belum ada di `.env.local` (Claude tidak boleh membuat/membaca berkas itu). Alur daftar→masuk→keluar dan SQL rate limit (`INSERT ... ON CONFLICT`) baru teruji lewat mock, belum terhadap PostgreSQL sungguhan.
+- Migrasi `20261110120000_add_rate_limit_buckets` diterapkan user ke Neon dev (`npm run db:migrate`).
+- `E2E_WITH_DB=1 npx playwright test auth-flow` → desktop + mobile lulus terhadap Neon dev: daftar, sandi salah dan email tak terdaftar (pesan sama), login benar ke `/dashboard`, cookie `httpOnly` + `sameSite=Lax`, sesi bertahan setelah reload, keluar lalu `/dashboard` ditolak. Ini juga memverifikasi SQL rate limit (`INSERT ... ON CONFLICT`) terhadap PostgreSQL sungguhan.
+- Akun uji `e2e-*@example.test` tertinggal di database dev (disengaja; hanya dev).
+- Peringatan dari `pg`: `sslmode=require` akan berubah semantik di pg v9. Disarankan menulis `sslmode=verify-full` di `DATABASE_URL`/`DIRECT_URL` (pengaturan user di `.env.local`/Vercel).
 
 ## Open Question
-1. Isi `AUTH_SECRET` di `.env.local` (acak ≥ 32 karakter, mis. `openssl rand -base64 32`) dan tambahkan baris nama variabelnya ke `.env.example` (nilai palsu). Lalu `npm run db:migrate`, kemudian `E2E_WITH_DB=1 npx playwright test auth-flow`.
+1. Tambahkan baris `AUTH_SECRET=` (nilai palsu) ke `.env.example` (oleh user; Claude tidak boleh membaca/menulis berkas itu).
 2. Vercel butuh `AUTH_SECRET` dan `DATABASE_URL` (Preview + Production, nilai **berbeda** per lingkungan) sebelum deploy dari branch ini berhasil, karena build memvalidasi env. Database production (branch `production` Neon) belum punya tabel; migrasi ke sana dijalankan user (`prisma migrate deploy`) sebelum rilis ke `main`.
 3. Tiket berikutnya yang bergantung pada ini: verifikasi email + reset sandi (butuh layanan email), Google SSO, cek sandi bocor.
