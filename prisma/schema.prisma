@@ -120,3 +120,13 @@ model PortfolioItem {
   @@index([ownerId])
   @@map("portfolio_items")
 }
+
+// Penghitung rate limit (RULES_SECURITY §7). Kunci berupa hash (tanpa email/IP mentah).
+model RateLimitBucket {
+  key         String   @id
+  count       Int
+  windowStart DateTime @map("window_start")
+
+  @@index([windowStart])
+  @@map("rate_limit_buckets")
+}

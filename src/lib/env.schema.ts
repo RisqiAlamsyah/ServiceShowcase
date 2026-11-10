@@ -7,6 +7,8 @@ export const serverEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   // Koneksi pooled untuk runtime. DIRECT_URL (migrasi) sengaja tidak ada di sini: hanya dibaca
   // prisma.config.ts, supaya kredensial DDL tidak pernah ada di runtime aplikasi.
+  // Rahasia penandatangan sesi: >= 32 karakter acak (RULES_SECURITY §1.7), unik per lingkungan.
+  AUTH_SECRET: z.string().min(32, "minimal 32 karakter"),
   DATABASE_URL: z.string().refine((v) => /^postgres(ql)?:\/\//.test(v), "harus URL PostgreSQL"),
 });
 
