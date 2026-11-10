@@ -4,6 +4,7 @@
 > **Tanggal dibuat:** 2026-11-10
 > **Tanggal mulai:** 2026-11-10
 > **Tanggal selesai:** 2026-11-10
+> **Tanggal mulai perbaikan:** 2026-11-10 (catatan penerapan migrasi)
 > **Status:** Done
 > **Implementasi:** [LOCAL-20261110-prisma-database](../implementations/LOCAL-20261110-prisma-database.md)
 > **Branch:** feature/prisma-database
@@ -33,14 +34,14 @@ Dependensi disetujui user (10 Nov 2026), versi dikunci: `@prisma/client`, `@pris
 - [x] `src/lib/db.ts` singleton, `import "server-only"`, log production hanya error/warn
 - [x] `DATABASE_URL` dan `DIRECT_URL` divalidasi di `env.ts` (Zod); nilai tidak pernah tercetak
 - [x] Migrasi awal ada dan SQL ditinjau (dibuat dengan `migrate diff`, tanpa koneksi DB)
-- [ ] Migrasi diterapkan dari DB kosong di Neon dev (menunggu user mengisi `.env.local`; lihat dokumen implementasi)
+- [x] Migrasi diterapkan dari DB kosong di Neon dev (branch `development`), dijalankan user
 - [x] CI tetap hijau tanpa rahasia DB (build tidak butuh koneksi)
 
 ## Verifikasi
 - [x] `npm run lint` dan `npm run typecheck` lulus
 - [x] `npm run test` lulus
 - [x] `npm run build` lulus
-- [ ] Migrasi diuji dari DB kosong (dan DB berisi data contoh) di database dev (menunggu `.env.local` user)
+- [x] Migrasi diuji dari DB kosong di database dev (DB berisi data contoh: dilewati, tabel masih kosong)
 - [x] `npm audit --omit=dev` tanpa High/Critical
 
 ## Checklist Keamanan (`RULES_SECURITY.md` §13)
@@ -49,6 +50,6 @@ Dependensi disetujui user (10 Nov 2026), versi dikunci: `@prisma/client`, `@pris
 - [x] Tidak ada data sensitif ke log; TLS wajib (`sslmode=require`)
 
 ## Definition of Done
-- [ ] Semua AC terpenuhi (kecuali dua butir migrasi ke DB nyata di atas)
+- [x] Semua AC terpenuhi
 - [x] Dokumen implementasi dibuat
 - [x] Tidak ada rahasia di perubahan (diff diperiksa)
