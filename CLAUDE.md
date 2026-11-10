@@ -129,10 +129,9 @@ npm audit --omit=dev       # bila menambah/mengubah dependensi
 
 ## 7. Catatan yang belum selesai
 
-- Proyek **belum di-scaffold** (belum ada `package.json`, Next.js, Prisma). Langkah awal yang disarankan, masing-masing satu tiket: (1) scaffold Next.js + TypeScript strict + Tailwind + ESLint + Vitest + Playwright; (2) `src/lib/env.ts` + `.env.example`; (3) Prisma + koneksi DB (`RULES_DB.md` §3); (4) Auth.js; (5) security headers + CSP + rate limit; (6) upload R2.
-- **Belum ada di GitHub (perlu dibuat user atau tiket tersendiri):** branch protection `main` **dan `development`** (wajib PR, status check wajib, tanpa force push), GitHub Actions CI (`lint`, `typecheck`, `test`, `build`, `npm audit`, secret scan seperti gitleaks), Dependabot, secret scanning + push protection, 2FA akun. Claude tidak mengubah pengaturan repo; user yang mengaktifkan.
-- Remote `origin` = `https://github.com/RisqiAlamsyah/ServiceShowcase.git` (terkonfirmasi 9 Nov 2026). **GitHub CLI (`gh`) belum terpasang** di mesin ini: sebelum Gate [H] bisa membuka PR, user perlu `winget install GitHub.cli` lalu `gh auth login` (login atas nama user; Claude tidak menyimpan token). Sampai itu ada, Claude berhenti setelah `git push` dan memberi link untuk membuka PR manual.
-- Branch `development` dibuat dari `main` (`82d7587`) dan sudah di-push ke GitHub (9 Nov 2026). Atur `development` sebagai default branch di GitHub bila ingin PR otomatis menuju ke sana (pengaturan repo = tugas user).
+- Sudah ada: scaffold Next.js + TypeScript strict + Tailwind + ESLint + Vitest + Playwright, `src/lib/env.ts`, inti kalkulator booking + UI demo, CI (`.github/workflows/ci.yml`), Dependabot. **Belum ada:** Prisma + DB, Auth.js, security headers/CSP lengkap + rate limit, upload R2 (masing-masing satu tiket).
+- **Tugas user di GitHub/Vercel** (langkah di `.docs/DEPLOY.md`): branch protection `main` dan `development` (wajib PR + status check CI), default branch ke `development`, secret scanning + push protection, Dependabot alerts, 2FA, Import Project Vercel. Claude tidak mengubah pengaturan repo atau Vercel.
+- Remote `origin` = `https://github.com/RisqiAlamsyah/ServiceShowcase.git`. GitHub CLI (`gh`) sudah terpasang dan login atas nama user; Claude tidak menyimpan token. Merge PR tetap oleh user.
 - `.code-reviewer/` sudah diselaraskan ke stack ini; model dan `GEMINI_API_KEY` mengikuti pilihan user.
 
 ---
